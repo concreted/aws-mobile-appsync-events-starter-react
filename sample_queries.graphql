@@ -1,0 +1,20 @@
+query GetEvent{
+  getEvent(id: "01540893-d7c5-4628-887e-7f6d65931be1"){
+    id
+  }
+}
+
+mutation Mutate{
+  createEvent(name:"HEEHEE", description:"GOTCHA", when:"2018-08-24T21:45:00Z", where:"???") {
+    id
+ name
+    where
+    when
+    description
+    comments {
+        items {
+            commentId
+        }
+    }
+  }
+}

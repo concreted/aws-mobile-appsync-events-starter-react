@@ -4,10 +4,13 @@ import { Link } from "react-router-dom";
 import { graphql, compose, withApollo } from "react-apollo";
 import QueryAllEvents from "../GraphQL/QueryAllEvents";
 import MutationDeleteEvent from "../GraphQL/MutationDeleteEvent";
+import NewEventsSubscription from '../GraphQL/NewEventsSubscription';
 
 import moment from "moment";
 
 class AllEvents extends Component {
+
+    subscription;
 
     state = {
         busy: false,
@@ -40,6 +43,10 @@ class AllEvents extends Component {
         });
 
         this.setState({ busy: false });
+    }
+
+    componentWillMount(){
+       this.props.subscribeToNewEvents();
     }
 
     renderEvent = (event) => (
@@ -100,8 +107,28 @@ export default withApollo(compose(
             options: {
                 fetchPolicy: 'cache-first',
             },
-            props: ({ data: { listEvents = { items: [] } } }) => ({
-                events: listEvents.items
+            // props: ({ data: { listEvents = { items: [] } } }) => ({
+            props: props => ({
+                events: props.data.listEvents.items,
+                subscribeToNewEvents: () => {
+                    console.log("DOING STUFF");
+                    props.data.subscribeToMore({
+                        document: NewEventsSubscription,
+                        updateQuery: (prev, { subscriptionData: { data : { addedEvent } } }) => {
+                            console.log(addedEvent);
+                            console.log(prev);
+                            return {
+                                ...prev,
+                                //events: prev.events,
+                                listEvents: {
+                                    ...prev.listEvents,
+                                    items: [addedEvent, ...prev.listEvents.items],
+                                }
+                                //prev.events.filter(event => event.id !== addedEvent.id)
+                            }
+                        }
+                    });
+                },
             })
         }
     ),
